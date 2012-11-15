@@ -214,6 +214,8 @@ function Sync(model, method, opts) {
 			Ti.API.info("[SQLITE] "+ sql);
 			var rs = db.execute(sql);
 			var len = 0;
+			
+			model.models.length = 0;
 			while(rs.isValidRow())
 			{
 				var o = {};
@@ -265,6 +267,7 @@ function Sync(model, method, opts) {
 			break;
 	}
 	if (resp) {
+		Ti.API.debug("model.models = " + JSON.stringify(model.models));
         opts.success(resp);
         method === "read" && model.trigger("fetch");
     } else opts.error("Record not found");
