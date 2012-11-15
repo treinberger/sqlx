@@ -267,7 +267,6 @@ function Sync(model, method, opts) {
 			break;
 	}
 	if (resp) {
-		Ti.API.debug("model.models = " + JSON.stringify(model.models));
         opts.success(resp);
         method === "read" && model.trigger("fetch");
     } else opts.error("Record not found");
