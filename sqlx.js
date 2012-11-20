@@ -207,10 +207,16 @@ function Sync(model, method, opts) {
 
 		case 'read':
 			Ti.API.info("[SQLITE] opts: " + JSON.stringify(opts));
-			var sql = _buildQuery(table, opts.data || opts);
-			Ti.API.info("[SQLITE] " + sql);
-			var rs = db.execute(sql);
+			var rs;
 			var len = 0;
+
+			if (opts.query) {
+				rs = db.execute(opts.query.sql, opts.query.params);
+			} else {
+				var sql = _buildQuery(table, opts.data || opts);
+				Ti.API.info("[SQLITE] " + sql);
+				rs = db.execute(sql);
+			}
 
 			model.models.length = 0;
 			while (rs.isValidRow()) {
@@ -237,25 +243,35 @@ function Sync(model, method, opts) {
 			break;
 
 		case 'update':
-			var names = [];
-			var values = [];
-			var q = [];
-			for (var k in columns) {
-				names.push(k + '=?');
-				values.push(model.get(k));
-				q.push('?');
-			}
-			var sql = 'UPDATE ' + table + ' SET ' + names.join(',') + ' WHERE id=?';
+			if (opts.query) {
+				Ti.API.info("[SQLITE] opts: " + JSON.stringify(opts));
+				db.execute(opts.query.sql, opts.query.params);
+			} else {
+				var names = [];
+				var values = [];
+				var q = [];
+				for (var k in columns) {
+					names.push(k + '=?');
+					values.push(model.get(k));
+					q.push('?');
+				}
+				var sql = 'UPDATE ' + table + ' SET ' + names.join(',') + ' WHERE id=?';
 
-			var e = sql + ',' + values.join(',') + ',' + model.id;
-			values.push(model.id);
-			db.execute(sql, values);
+				var e = sql + ',' + values.join(',') + ',' + model.id;
+				values.push(model.id);
+				db.execute(sql, values);
+			}
+
 			resp = model.toJSON();
 			break;
 
 		case 'delete':
-			var sql = 'DELETE FROM ' + table + ' WHERE id=?';
-			db.execute(sql, model.id);
+			if (opts.query) {
+				db.execute(opts.query.sql, opts.query.params);
+			} else {
+				var sql = 'DELETE FROM ' + table + ' WHERE id=?';
+				db.execute(sql, model.id);
+			}
 			model.id = null;
 			resp = model.toJSON();
 			break;
